@@ -82,7 +82,7 @@ const start = () => {
   isTaskCompletedBeforeDeadline(7) // done before deadline
   isTaskCompletedBeforeDeadline(8) // not done
   isTaskCompletedBeforeDeadline(9) // done, but after deadline
-  isTaskCompletedBeforeDeadline(10) // not done
+  isTaskCompletedBeforeDeadline(10) // not found (deleted)
   isTaskCompletedBeforeDeadline(100) // Non-existent task
   console.log('\n')
     
