@@ -1,8 +1,6 @@
 import { setTasks, getTaskById, createTask, updateTask, deleteTask, filterTasks, isTaskCompletedBeforeDeadline } from './services/taskService';
 import { parsedTasks } from './utils/json-validation'
 
-//import {logTasks} from './utils/json-validation'
-
 const start = () => {
     console.log('My first TS function for parsing JSON data:')
     //logTasks();
