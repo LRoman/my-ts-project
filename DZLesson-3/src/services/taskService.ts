@@ -1,4 +1,4 @@
-import { Task } from '../models/task'
+import { Task, Priority, Status } from '../models/task'
 import { DEFAULT_PRIORITY, DEFAULT_STATUS } from '../constants/constants'
 
 let tasks: Task[] = []
@@ -79,7 +79,7 @@ export const updateTask = (
     createdAt: existingTask.createdAt,
     title: updates.title ?? existingTask.title,
     deadline: updates.deadline
-      ? toDate(updates.deadline as any)
+      ? toDate(updates.deadline)
       : existingTask.deadline,
   }
 
@@ -99,49 +99,57 @@ export const deleteTask = (id: number): boolean => {
 }
 
 export type TaskFilter = {
-  status?: Task['status']
-  priority?: Task['priority']
-  createdAfter?: Date | string
-  createdBefore?: Date | string
+  status?: Status
+  priority?: Priority
+  createdAfter?: Date
+  createdBefore?: Date
+  completedBeforeDeadline?: boolean
+}
+
+export const isTaskDoneBeforeDeadline = (task: Task): boolean => {
+  return task.status === 'done' && task.createdAt <= task.deadline
 }
 
 export const filterTasks = (filter: TaskFilter): Task[] => {
-  let result = [...tasks]
+  const {
+    status,
+    priority,
+    createdAfter,
+    createdBefore,
+    completedBeforeDeadline
+  } = filter
 
-  if (filter.status) {
-    result = result.filter((t) => t.status === filter.status)
-  }
+  return tasks.filter((t) => {
+    if (status && t.status !== status) return false
+    if (priority && t.priority !== priority) return false
+    if (createdAfter && t.createdAt < createdAfter) return false
+    if (createdBefore && t.createdAt > createdBefore) return false
 
-  if (filter.priority) {
-    result = result.filter((t) => t.priority === filter.priority)
-  }
+    //logic for deadline = "done"
+    if (completedBeforeDeadline !== undefined) {
+      const isBeforeDeadline = isTaskDoneBeforeDeadline(t)
 
-  if (filter.createdAfter) {
-    const afterDate = toDate(filter.createdAfter)
-    result = result.filter((t) => t.createdAt > afterDate)
-  }
+      //if filter true -> getting only those that are done in time
+      //if filter false -> getting only those that are not done in time or not done at all
+      if (completedBeforeDeadline && !isBeforeDeadline) return false
+      if (!completedBeforeDeadline && isBeforeDeadline) return false
+    }
 
-  if (filter.createdBefore) {
-    const beforeDate = toDate(filter.createdBefore)
-    result = result.filter((t) => t.createdAt < beforeDate)
-  }
-
-  return result
+    return true
+  })
 }
 
+//to check by id, just left as separate function
 export const isTaskCompletedBeforeDeadline = (id: number): boolean => {
   const task = getTaskById(id)
-  if (!task) {   
+  if (!task) {
     return false
   }
   if (task.status !== 'done') {
     console.log(`Task with id: '${id}' is not marked as done.`)
     return false
   }
-  const completedOn = task.createdAt
-  const deadline = task.deadline
-
-  const completedBeforeDeadline = completedOn <= deadline
+  const completedBeforeDeadline = task.createdAt <= task.deadline
 
   if (completedBeforeDeadline) {
     console.log(`Task with id: '${id}' was completed before the deadline.`)
